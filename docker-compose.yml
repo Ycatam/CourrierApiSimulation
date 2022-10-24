@@ -1,0 +1,37 @@
+version: "3.8"
+services:
+    mysql:
+        image: mysql:8
+        container_name: mysql
+        environment:
+            - MYSQL_ROOT_PASSWORD=root
+            - MYSQL_DATABASE=bootdb
+
+        ports:
+            - "3306:3306"
+            - "33060:33060"
+        networks:
+            - connection1
+            
+    courrier:
+        build:
+            dockerfile: ./Dockerfile
+            context: ./
+        image: rafaelribeiro/courrier
+        container_name: courrier
+        environment:
+            - SERVER_HOST=courrier
+            - SERVER_PORT=8080
+            - MYSQL_HOST=mysql
+            - MYSQL_PORT=3306
+            - SPRING_PROFILES_ACTIVE=prod
+        ports:
+            - "8080:8080"
+        networks:
+            - connection1
+        depends_on:
+            - mysql
+
+networks:
+    connection1:
+        driver: bridge
