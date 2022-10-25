@@ -4,8 +4,12 @@ services:
         image: mysql:8
         container_name: mysql
         environment:
-            - MYSQL_ROOT_PASSWORD=root
-            - MYSQL_DATABASE=bootdb
+            MYSQL_ROOT_PASSWORD: "root"
+            MYSQL_DATABASE: "bootdb"
+        healthcheck:
+            test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost"]
+            timeout: 20s
+            retries: 10
 
         ports:
             - "3306:3306"
@@ -20,17 +24,19 @@ services:
         image: rafaelribeiro/courrier
         container_name: courrier
         environment:
-            - SERVER_HOST=courrier
-            - SERVER_PORT=8080
-            - MYSQL_HOST=mysql
-            - MYSQL_PORT=3306
-            - SPRING_PROFILES_ACTIVE=prod
+            SERVER_HOST: "courrier"
+            SERVER_PORT: "8080"
+            MYSQL_HOST: "mysql"
+            MYSQL_PORT: "3306"
+            SPRING_PROFILES_ACTIVE: "prod"
         ports:
             - "8080:8080"
         networks:
             - connection1
         depends_on:
-            - mysql
+            mysql:
+                condition: service_healthy
+
 
 networks:
     connection1:

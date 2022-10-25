@@ -1,7 +1,6 @@
 package br.com.kabum.courrier.repositories;
 
-import br.com.kabum.courrier.entities.KabumCourrier;
-import br.com.kabum.courrier.entities.NinjaCourrier;
+import br.com.kabum.courrier.entities.CourrierEntity;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
@@ -16,20 +15,18 @@ import java.math.BigDecimal;
 @Service
 public class InsertCourrierInDB {
 
-    private final KabumCourrierRepository kabumCourrierRepository;
+    private final CourrierRepository courrierRepository;
 
-    private final NinjaCourrierRepository ninjaCourrierRepository;
-
-    public InsertCourrierInDB(KabumCourrierRepository kabumCourrierRepository, NinjaCourrierRepository ninjaCourrierRepository) {
-        this.kabumCourrierRepository = kabumCourrierRepository;
-        this.ninjaCourrierRepository = ninjaCourrierRepository;
+    public InsertCourrierInDB(CourrierRepository courrierRepository) {
+        this.courrierRepository = courrierRepository;
     }
 
     @PostConstruct
     private void insertKabumDB(){
 
-        KabumCourrier kabumCourrier = KabumCourrier.builder()
+        CourrierEntity courrierKabum = CourrierEntity.builder()
                 .id(1L)
+                .courrierName("Entrega KaBuM")
                 .calcConstant(BigDecimal.valueOf(0.2))
                 .dueDate(4)
                 .maxHeight(140)
@@ -37,15 +34,11 @@ public class InsertCourrierInDB {
                 .minHeight(5)
                 .minWidth(13)
                 .build();
-        kabumCourrierRepository.save(kabumCourrier);
+        courrierRepository.save(courrierKabum);
 
-    }
-
-    @PostConstruct
-    private void insertNinjaDB(){
-
-        NinjaCourrier ninjaCourrier = NinjaCourrier.builder()
-                .id(1L)
+        CourrierEntity courrierNinja = CourrierEntity.builder()
+                .id(2L)
+                .courrierName("Entrega Ninja")
                 .calcConstant(BigDecimal.valueOf(0.3))
                 .dueDate(6)
                 .maxHeight(200)
@@ -53,7 +46,8 @@ public class InsertCourrierInDB {
                 .minHeight(10)
                 .minWidth(6)
                 .build();
-        ninjaCourrierRepository.save(ninjaCourrier);
+        courrierRepository.save(courrierNinja);
 
     }
+
 }

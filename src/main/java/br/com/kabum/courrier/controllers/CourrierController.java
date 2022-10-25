@@ -3,12 +3,10 @@ package br.com.kabum.courrier.controllers;
 import br.com.kabum.courrier.dtos.CourrierDto;
 import br.com.kabum.courrier.dtos.ResponseDto;
 import br.com.kabum.courrier.services.CourrierService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
@@ -30,6 +28,7 @@ public class CourrierController {
         this.courrierService = courrierService;
     }
 
+    @ResponseStatus(HttpStatus.OK)
     @PostMapping
     public ResponseEntity<List<ResponseDto>> courrier(@RequestBody @Valid CourrierDto courrierDto){
         return ResponseEntity.ok().body(courrierService.consultCourrier(courrierDto));

@@ -11,7 +11,7 @@ import java.math.BigDecimal;
 import java.util.Objects;
 
 /**
- * Entity for Ninja Courrier.
+ * Entity for Courriers.
  */
 @Getter
 @Setter
@@ -20,12 +20,13 @@ import java.util.Objects;
 @AllArgsConstructor
 @Builder
 @Entity
-public class NinjaCourrier {
+public class CourrierEntity {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    private String courrierName;
     private BigDecimal calcConstant;
     private Integer minHeight;
     private Integer maxHeight;
@@ -37,7 +38,7 @@ public class NinjaCourrier {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
-        NinjaCourrier that = (NinjaCourrier) o;
+        CourrierEntity that = (CourrierEntity) o;
         return id != null && Objects.equals(id, that.id);
     }
 

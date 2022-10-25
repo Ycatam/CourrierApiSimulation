@@ -2,10 +2,8 @@ package br.com.kabum.courrier.services;
 
 import br.com.kabum.courrier.dtos.CourrierDto;
 import br.com.kabum.courrier.dtos.ResponseDto;
-import br.com.kabum.courrier.entities.KabumCourrier;
-import br.com.kabum.courrier.entities.NinjaCourrier;
-import br.com.kabum.courrier.repositories.KabumCourrierRepository;
-import br.com.kabum.courrier.repositories.NinjaCourrierRepository;
+import br.com.kabum.courrier.entities.CourrierEntity;
+import br.com.kabum.courrier.repositories.CourrierRepository;
 import org.springframework.stereotype.Service;
 
 import javax.transaction.Transactional;
@@ -22,78 +20,68 @@ import java.util.List;
 @Transactional
 public class CourrierService {
 
-    private final KabumCourrierRepository kabumCourrierRepository;
-    private final NinjaCourrierRepository ninjaCourrierRepository;
+    private final CourrierRepository courrierRepository;
 
-    //This method can implement spring controlled cache, to reduce de access to DB.
+    //This method can implement a spring controlled cache, to reduce the access to DB.
     //To do this, a cache evict method must be created, otherwise the cache will grow indefinitely.
     //For this API, there is two courriers preloaded in DB. So I decided to not implement cache for now.
-    public CourrierService(KabumCourrierRepository kabumCourrierRepository, NinjaCourrierRepository ninjaCourrierRepository) {
-        this.kabumCourrierRepository = kabumCourrierRepository;
-        this.ninjaCourrierRepository = ninjaCourrierRepository;
+    public CourrierService(CourrierRepository courrierRepository) {
+        this.courrierRepository = courrierRepository;
     }
 
     public List<ResponseDto> consultCourrier(CourrierDto courrierDto) {
 
         List<ResponseDto> responseDtoList = new ArrayList<>();
 
-        KabumCourrier kabumCourrier = kabumCourrierRepository.findById(1L).get();
-        NinjaCourrier ninjaCourrier = ninjaCourrierRepository.findById(1L).get();
+        CourrierEntity courrierKabum = courrierRepository.findById(1L).get();
+        CourrierEntity courrierNinja = courrierRepository.findById(2L).get();
 
-        ResponseDto responseDtoAuxNinja = validateForNinjaCourrier(ninjaCourrier, courrierDto);
-        ResponseDto responseDtoAuxKabum = validateForKabumCourrier(kabumCourrier, courrierDto);
-
-        if (responseDtoAuxNinja != null && courrierDto.getWeight().compareTo(BigDecimal.ZERO) > 0){
-            responseDtoList.add(responseDtoAuxNinja);
+        if (validateForCourriers(courrierNinja, courrierDto)){
+            responseDtoList.add(ninjaCourrierBuilder(courrierNinja, courrierDto));
         }
 
-        if (responseDtoAuxKabum != null && courrierDto.getWeight().compareTo(BigDecimal.ZERO) > 0){
-        responseDtoList.add(responseDtoAuxKabum);
+        if (validateForCourriers(courrierKabum, courrierDto)){
+            responseDtoList.add(kabumCourrierBuilder(courrierKabum, courrierDto));
         }
 
         return responseDtoList;
 
     }
-    private ResponseDto validateForNinjaCourrier(NinjaCourrier ninjaCourrier, CourrierDto courrierDto) {
-        if (courrierDto.getProductDimension().getHeight() > ninjaCourrier.getMaxHeight() || courrierDto.getProductDimension().getHeight() < ninjaCourrier.getMinHeight()){
-            return null;
+
+    private Boolean validateForCourriers(CourrierEntity courrier, CourrierDto courrierDto) {
+
+        if (courrierDto.getProductDimension().getHeight() > courrier.getMaxHeight() || courrierDto.getProductDimension().getHeight() < courrier.getMinHeight()){
+            return false;
         }
 
-        if (courrierDto.getProductDimension().getWidth() > ninjaCourrier.getMaxWidth() || courrierDto.getProductDimension().getWidth() < ninjaCourrier.getMinWidth()){
-            return null;
+        if (courrierDto.getProductDimension().getWidth() > courrier.getMaxWidth() || courrierDto.getProductDimension().getWidth() < courrier.getMinWidth()){
+            return false;
         }
 
+        if (courrierDto.getWeight().compareTo(BigDecimal.ZERO) <= 0){
+            return false;
+        }
+
+        return true;
+    }
+
+    private ResponseDto ninjaCourrierBuilder(CourrierEntity ninjaCourrier, CourrierDto courrierDto) {
         return ResponseDto.builder()
                 .nome("Entrega Ninja")
-                .valor_frete(courrierNinjaShippingCalc(ninjaCourrier.getCalcConstant(), courrierDto.getWeight()))
+                .valor_frete(courrierShippingCalc(ninjaCourrier.getCalcConstant(), courrierDto.getWeight()))
                 .prazo_dias(ninjaCourrier.getDueDate())
                 .build();
-
     }
-
-    private ResponseDto validateForKabumCourrier(KabumCourrier kabumCourrier, CourrierDto courrierDto) {
-
-        if (courrierDto.getProductDimension().getHeight() > kabumCourrier.getMaxHeight() || courrierDto.getProductDimension().getHeight() < kabumCourrier.getMinHeight()){
-            return null;
-        }
-
-        if (courrierDto.getProductDimension().getWidth() > kabumCourrier.getMaxWidth() || courrierDto.getProductDimension().getWidth() < kabumCourrier.getMinWidth()){
-            return null;
-        }
-
+    private ResponseDto kabumCourrierBuilder(CourrierEntity kabumCourrier, CourrierDto courrierDto) {
         return ResponseDto.builder()
                 .nome("Entrega KaBuM")
-                .valor_frete(courrierKabumShippingCalc(kabumCourrier.getCalcConstant(), courrierDto.getWeight()))
+                .valor_frete(courrierShippingCalc(kabumCourrier.getCalcConstant(), courrierDto.getWeight()))
                 .prazo_dias(kabumCourrier.getDueDate())
                 .build();
-
     }
 
-    private BigDecimal courrierNinjaShippingCalc(BigDecimal calcConstant, BigDecimal weight){
+    private BigDecimal courrierShippingCalc(BigDecimal calcConstant, BigDecimal weight){
         return (calcConstant.multiply(weight).divide(BigDecimal.valueOf(10), 2, RoundingMode.HALF_UP));
     }
 
-    private BigDecimal courrierKabumShippingCalc(BigDecimal calcConstant, BigDecimal weight){
-        return (calcConstant.multiply(weight).divide(BigDecimal.valueOf(10), 2, RoundingMode.HALF_UP));
-    }
 }

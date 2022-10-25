@@ -3,10 +3,8 @@ package br.com.kabum.courrier;
 import br.com.kabum.courrier.dtos.CourrierDto;
 import br.com.kabum.courrier.dtos.ProductDimensionDto;
 import br.com.kabum.courrier.dtos.ResponseDto;
-import br.com.kabum.courrier.entities.KabumCourrier;
-import br.com.kabum.courrier.entities.NinjaCourrier;
-import br.com.kabum.courrier.repositories.KabumCourrierRepository;
-import br.com.kabum.courrier.repositories.NinjaCourrierRepository;
+import br.com.kabum.courrier.entities.CourrierEntity;
+import br.com.kabum.courrier.repositories.CourrierRepository;
 import br.com.kabum.courrier.services.CourrierService;
 import org.junit.Test;
 import org.junit.jupiter.api.BeforeEach;
@@ -29,31 +27,30 @@ import static org.mockito.Mockito.when;
 public class CourrierServiceUnitTest {
 
     @Mock
-    KabumCourrierRepository kabumCourrierRepository;
-    @Mock
-    NinjaCourrierRepository ninjaCourrierRepository;
+    CourrierRepository courrierRepository;
 
     CourrierService courrierService;
 
     @BeforeEach
     public void beforeEach(){
-        this.courrierService = new CourrierService(kabumCourrierRepository, ninjaCourrierRepository);
+        this.courrierService = new CourrierService(courrierRepository);
     }
 
     ResponseDto responseForKabumDto = ResponseDto.builder()
             .nome("Entrega KaBuM")
-            .valor_frete(BigDecimal.valueOf(8))
+            .valor_frete(new BigDecimal("8.00"))
             .prazo_dias(4)
             .build();
 
     ResponseDto responseForNinjaDto = ResponseDto.builder()
             .nome("Entrega Ninja")
-            .valor_frete(BigDecimal.valueOf(12))
+            .valor_frete(new BigDecimal("12.00"))
             .prazo_dias(6)
             .build();
 
-    KabumCourrier kabumCourrier = KabumCourrier.builder()
+    CourrierEntity kabumCourrier = CourrierEntity.builder()
             .id(1L)
+            .courrierName("Entrega KaBuM")
             .calcConstant(BigDecimal.valueOf(0.2))
             .dueDate(4)
             .maxHeight(140)
@@ -62,8 +59,9 @@ public class CourrierServiceUnitTest {
             .minWidth(13)
             .build();
 
-    NinjaCourrier ninjaCourrier = NinjaCourrier.builder()
-            .id(1L)
+    CourrierEntity ninjaCourrier = CourrierEntity.builder()
+            .id(2L)
+            .courrierName("Entrega Ninja")
             .calcConstant(BigDecimal.valueOf(0.3))
             .dueDate(6)
             .maxHeight(200)
@@ -74,7 +72,7 @@ public class CourrierServiceUnitTest {
 
     @Test
     public void consultCourrier_withValidValuesForBothCourrier_shouldReturnBothCourrier() {
-       courrierService = new CourrierService(kabumCourrierRepository, ninjaCourrierRepository);
+       courrierService = new CourrierService(courrierRepository);
 
         CourrierDto courrierDto = CourrierDto.builder()
                 .productDimension(ProductDimensionDto.builder()
@@ -84,23 +82,23 @@ public class CourrierServiceUnitTest {
                 .weight(BigDecimal.valueOf(400))
                 .build();
 
-        when(kabumCourrierRepository.findById(1L)).thenReturn(Optional.ofNullable(kabumCourrier));
-        when(ninjaCourrierRepository.findById(1L)).thenReturn(Optional.ofNullable(ninjaCourrier));
+        when(courrierRepository.findById(1L)).thenReturn(Optional.ofNullable(kabumCourrier));
+        when(courrierRepository.findById(2L)).thenReturn(Optional.ofNullable(ninjaCourrier));
 
         List<ResponseDto> listDtoFromService = courrierService.consultCourrier(courrierDto);
 
-        assertEquals("Entrega Ninja", listDtoFromService.get(0).getNome());
-        assertEquals(new BigDecimal("12.00"), listDtoFromService.get(0).getValor_frete());
+        assertEquals(responseForNinjaDto.getNome(), listDtoFromService.get(0).getNome());
+        assertEquals(responseForNinjaDto.getValor_frete(), listDtoFromService.get(0).getValor_frete());
         assertSame(responseForNinjaDto.getPrazo_dias(), listDtoFromService.get(0).getPrazo_dias());
-        assertEquals("Entrega KaBuM", listDtoFromService.get(1).getNome());
-        assertEquals(new BigDecimal("8.00"), listDtoFromService.get(1).getValor_frete());
+        assertEquals(responseForKabumDto.getNome(), listDtoFromService.get(1).getNome());
+        assertEquals(responseForKabumDto.getValor_frete(), listDtoFromService.get(1).getValor_frete());
         assertSame(responseForKabumDto.getPrazo_dias(), listDtoFromService.get(1).getPrazo_dias());
         assertEquals(2, listDtoFromService.size());
     }
 
     @Test
     public void consultCourrier_withValidValuesForNinjaCourrier_shouldReturnNinjaCourrier(){
-        courrierService = new CourrierService(kabumCourrierRepository, ninjaCourrierRepository);
+        courrierService = new CourrierService(courrierRepository);
 
         CourrierDto courrierDto = CourrierDto.builder()
                 .productDimension(ProductDimensionDto.builder()
@@ -110,20 +108,20 @@ public class CourrierServiceUnitTest {
                 .weight(BigDecimal.valueOf(400))
                 .build();
 
-        when(kabumCourrierRepository.findById(1L)).thenReturn(Optional.ofNullable(kabumCourrier));
-        when(ninjaCourrierRepository.findById(1L)).thenReturn(Optional.ofNullable(ninjaCourrier));
+        when(courrierRepository.findById(1L)).thenReturn(Optional.ofNullable(kabumCourrier));
+        when(courrierRepository.findById(2L)).thenReturn(Optional.ofNullable(ninjaCourrier));
 
         List<ResponseDto> listDtoFromService = courrierService.consultCourrier(courrierDto);
 
-        assertEquals("Entrega Ninja", listDtoFromService.get(0).getNome());
-        assertEquals(new BigDecimal("12.00"), listDtoFromService.get(0).getValor_frete());
+        assertEquals(responseForNinjaDto.getNome(), listDtoFromService.get(0).getNome());
+        assertEquals(responseForNinjaDto.getValor_frete(), listDtoFromService.get(0).getValor_frete());
         assertSame(responseForNinjaDto.getPrazo_dias(), listDtoFromService.get(0).getPrazo_dias());
         assertEquals(1, listDtoFromService.size());
     }
 
     @Test
     public void consultCourrier_withInvalidHeight_shouldReturnEmptyList(){
-        courrierService = new CourrierService(kabumCourrierRepository, ninjaCourrierRepository);
+        courrierService = new CourrierService(courrierRepository);
 
         CourrierDto courrierDto = CourrierDto.builder()
                 .productDimension(ProductDimensionDto.builder()
@@ -133,8 +131,8 @@ public class CourrierServiceUnitTest {
                 .weight(BigDecimal.valueOf(400))
                 .build();
 
-        when(kabumCourrierRepository.findById(1L)).thenReturn(Optional.ofNullable(kabumCourrier));
-        when(ninjaCourrierRepository.findById(1L)).thenReturn(Optional.ofNullable(ninjaCourrier));
+        when(courrierRepository.findById(1L)).thenReturn(Optional.ofNullable(kabumCourrier));
+        when(courrierRepository.findById(2L)).thenReturn(Optional.ofNullable(ninjaCourrier));
 
         List<ResponseDto> listDtoFromService = courrierService.consultCourrier(courrierDto);
 
@@ -143,7 +141,7 @@ public class CourrierServiceUnitTest {
 
     @Test
     public void consultCourrier_withInvalidWidth_shouldReturnEmptyList(){
-        courrierService = new CourrierService(kabumCourrierRepository, ninjaCourrierRepository);
+        courrierService = new CourrierService(courrierRepository);
 
         CourrierDto courrierDto = CourrierDto.builder()
                 .productDimension(ProductDimensionDto.builder()
@@ -153,8 +151,8 @@ public class CourrierServiceUnitTest {
                 .weight(BigDecimal.valueOf(400))
                 .build();
 
-        when(kabumCourrierRepository.findById(1L)).thenReturn(Optional.ofNullable(kabumCourrier));
-        when(ninjaCourrierRepository.findById(1L)).thenReturn(Optional.ofNullable(ninjaCourrier));
+        when(courrierRepository.findById(1L)).thenReturn(Optional.ofNullable(kabumCourrier));
+        when(courrierRepository.findById(2L)).thenReturn(Optional.ofNullable(ninjaCourrier));
 
         List<ResponseDto> listDtoFromService = courrierService.consultCourrier(courrierDto);
 
@@ -163,7 +161,7 @@ public class CourrierServiceUnitTest {
 
     @Test
     public void consultCourrier_withZeroWeightValue_shouldReturnEmptyList(){
-        courrierService = new CourrierService(kabumCourrierRepository, ninjaCourrierRepository);
+        courrierService = new CourrierService(courrierRepository);
 
         CourrierDto courrierDto = CourrierDto.builder()
                 .productDimension(ProductDimensionDto.builder()
@@ -173,8 +171,8 @@ public class CourrierServiceUnitTest {
                 .weight(BigDecimal.ZERO)
                 .build();
 
-        when(kabumCourrierRepository.findById(1L)).thenReturn(Optional.ofNullable(kabumCourrier));
-        when(ninjaCourrierRepository.findById(1L)).thenReturn(Optional.ofNullable(ninjaCourrier));
+        when(courrierRepository.findById(1L)).thenReturn(Optional.ofNullable(kabumCourrier));
+        when(courrierRepository.findById(2L)).thenReturn(Optional.ofNullable(ninjaCourrier));
 
         List<ResponseDto> listDtoFromService = courrierService.consultCourrier(courrierDto);
 
@@ -183,7 +181,7 @@ public class CourrierServiceUnitTest {
 
     @Test
     public void consultCourrier_withNegativeWeightValue_shouldReturnEmptyList(){
-        courrierService = new CourrierService(kabumCourrierRepository, ninjaCourrierRepository);
+        courrierService = new CourrierService(courrierRepository);
 
         CourrierDto courrierDto = CourrierDto.builder()
                 .productDimension(ProductDimensionDto.builder()
@@ -193,8 +191,8 @@ public class CourrierServiceUnitTest {
                 .weight(BigDecimal.valueOf(-10))
                 .build();
 
-        when(kabumCourrierRepository.findById(1L)).thenReturn(Optional.ofNullable(kabumCourrier));
-        when(ninjaCourrierRepository.findById(1L)).thenReturn(Optional.ofNullable(ninjaCourrier));
+        when(courrierRepository.findById(1L)).thenReturn(Optional.ofNullable(kabumCourrier));
+        when(courrierRepository.findById(2L)).thenReturn(Optional.ofNullable(ninjaCourrier));
 
         List<ResponseDto> listDtoFromService = courrierService.consultCourrier(courrierDto);
 
